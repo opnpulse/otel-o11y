@@ -1,4 +1,4 @@
-clusterName: ace-spoke
+clusterName: ace
 
 collectors:
   daemon:
@@ -39,17 +39,29 @@ collectors:
               - tag_name: ace.client
                 key: ace.appscode.com/client-org
                 from: namespace
+#          pod_association:
+#            - sources:
+#                - from: resource_attribute
+#                  name: k8s.pod.ip
+#            - sources:
+#                - from: resource_attribute
+#                  name: k8s.pod.uid
+#            - sources:
+#                - from: connection
       service:
         pipelines:
           metrics:
             receivers: [ prometheus ]
             processors: [ k8sattributes ]
-            exporters: [ debug,otlp ]
-          traces: null
+            exporters: [ otlp ]
+          traces:
+            receivers: [ otlp ]
+            processors: [ k8sattributes ]
+            exporters: [ otlp ]
           logs:
-            receivers: [filelog, k8sobjects]
+            receivers: [filelog]
             processors: [k8sattributes]
-            exporters: [debug, otlp]
+            exporters: [otlp]
     presets:
       logsCollection:
         enabled: true
@@ -108,11 +120,31 @@ collectors:
               - tag_name: ace.client
                 key: ace.appscode.com/client-org
                 from: namespace
+#          pod_association:
+#            - sources:
+#                - from: resource_attribute
+#                  name: k8s.pod.ip
+#            - sources: # this source seems to help identify the pods and the k8s metadata
+#                - from: resource_attribute
+#                  name: k8s.pod.uid
+#            - sources:
+#                - from: connection
+        attributes/example:
+          actions:
+            - key: cluster
+              value: "ace"
+              action: upsert
         groupbyattrs:
           keys: [source_id]
         transform/tenant:
           error_mode: ignore
           metric_statements:
+            - context: resource
+              statements:
+                - set(resource.attributes["tenant"], "default")
+                - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
+                  where resource.attributes["ace.client"] == "true"
+          trace_statements:
             - context: resource
               statements:
                 - set(resource.attributes["tenant"], "default")
@@ -136,13 +168,15 @@ collectors:
         debug:
           verbosity: detailed
         prometheusremotewrite:
-          endpoint: "http://10.2.0.141/receiver/api/v1/receive"
+          endpoint: "http://10.2.0.236/receiver/api/v1/receive"
           auth:
             authenticator: headers_setter
+          target_info:
+            enabled: false
         clickhouse:
-          endpoint: "tcp://10.2.0.141:9000"
+          endpoint: "tcp://10.2.0.236:9000"
           username: "admin"
-          password: "D4NT8ephEUHfVgh6"
+          password: "CR6YLxxoYQmmZp3I"
           database: "default"
           create_schema: false
           logs_table_name: otel_logs
@@ -154,6 +188,10 @@ collectors:
             initial_interval: 5s
             max_interval: 30s
             max_elapsed_time: 300s
+        otlp:
+          endpoint: opentelemetry-kube-stack-gateway-collector.monitoring.svc.cluster.local:4317
+          tls:
+            insecure: true
       service:
         extensions: [headers_setter]
         pipelines:
@@ -162,9 +200,12 @@ collectors:
             exporters: [clickhouse]
           metrics:
             receivers: [ otlp ]
-            processors: [ groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
-            exporters: [ debug, prometheusremotewrite]
-          traces: null
+            processors: [ attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
+            exporters: [prometheusremotewrite]
+          traces:
+            receivers: [ otlp ]
+            processors: [ k8sattributes, attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant ]
+            exporters: [ clickhouse ]
 
 instrumentation:
   enabled: false

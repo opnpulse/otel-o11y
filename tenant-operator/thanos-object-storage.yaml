@@ -1,0 +1,18 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: thanos-object-storage
+  namespace: thanos-operator-system
+stringData:
+  thanos.yaml: |
+    type: S3
+    config:
+      bucket: "test"
+      endpoint: "minio.minio.svc.cluster.local:9000"
+      access_key: "rootuser"
+      secret_key: "rootpass123"
+      http_config:
+        tls_config:
+          ca_file: /etc/thanos/certs/public.crt
+    prefix: "metrics"
+type: Opaque

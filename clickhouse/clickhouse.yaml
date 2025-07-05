@@ -4,6 +4,10 @@ metadata:
   name: ch
   namespace: monitoring
 spec:
+  tls:
+    clientCaCertificateRefs:
+      - name: "tls-ssl-minio"
+        key: public.crt
   configSecret:
     name: my-config-xml
   version: 24.4.1

@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: thanos-querier-ingress
+  namespace: thanos-operator-system
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    # No rewrite-target! Pass the full path including /querier/ to backend
+spec:
+  ingressClassName: nginx-ace
+  rules:
+    - http:
+        paths:
+          # For querier UI - route to thanos query (not query-frontend)
+          - path: /querier
+            pathType: Prefix
+            backend:
+              service:
+                name: thanos-query-td-1  # <- This should be thanos query service
+                port:
+                  number: 9090
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: thanos-receiver-ingress
+  namespace: thanos-operator-system
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx-ace
+  rules:
+    - http:
+        paths:
+          - path: /receiver(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: thanos-receive-router-td-1
+                port:
+                  number: 19291

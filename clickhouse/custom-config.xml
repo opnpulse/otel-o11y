@@ -1,9 +1,4 @@
 <clickhouse>
-    <openSSL>
-        <client>
-            <verificationMode>none</verificationMode>
-        </client>
-    </openSSL>
     <storage_configuration>
         <disks>
             <local>
@@ -11,9 +6,9 @@
             </local>
             <s3>
                 <type>s3</type>
-                <endpoint>https://minio.minio.svc.cluster.local:443/test/logs</endpoint>
-                <access_key_id>minio</access_key_id>
-                <secret_access_key>minio123</secret_access_key>
+                <endpoint>https://minio.minio.svc.cluster.local:9000/test/logs</endpoint>
+                <access_key_id>rootuser</access_key_id>
+                <secret_access_key>rootpass123</secret_access_key>
                 <region>us-east-1</region>
                 <metadata_path>/var/lib/clickhouse/disks/s3_disk/</metadata_path>
             </s3>
