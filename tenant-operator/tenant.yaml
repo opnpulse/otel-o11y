@@ -1,0 +1,25 @@
+apiVersion: thanos.k8s.appscode.com/v1alpha1
+kind: Tenant
+metadata:
+  name: tenant1
+spec:
+  tenantID: "tenant1"
+  thanosDeploymentRef:
+    name: td-1
+  metrics:
+    targetEndpoint: "http://thanos-receiver.monitoring.svc:19291"
+    retention:
+      raw: "7d"
+      fiveMinutes: "30d"
+      oneHour: "180d"
+#  ingestConfig:
+#    dedicated: true
+#    hashringConfig:
+#      storageSize: "200Mi"
+#      tsdbConfig:
+#        retention: "2h"
+#      replicas: 1
+  logs:
+    targetEndpoint: "http://thanos-receiver.monitoring.svc:19291"
+    retention: "10m"
+
