@@ -153,6 +153,7 @@ collectors:
           database: "default"
           create_schema: false
           logs_table_name: otel_logs
+          traces_table_name: otel_traces
           timeout: 10s
           sending_queue:
             queue_size: 10000
