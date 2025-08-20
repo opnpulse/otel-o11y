@@ -141,11 +141,11 @@ collectors:
         debug:
           verbosity: detailed
         prometheusremotewrite:
-          endpoint: "http://10.2.0.140/receiver/api/v1/receive"
+          endpoint: "http://10.2.0.160/receiver/api/v1/receive"
           auth:
             authenticator: headers_setter
         clickhouse:
-          endpoint: "tcp://10.2.0.140:9000"
+          endpoint: "tcp://10.2.0.160:9000"
           username: "admin"
           password: "3tNxaPmnz1u8NDBJ"
           database: "default"
@@ -159,6 +159,10 @@ collectors:
             initial_interval: 5s
             max_interval: 30s
             max_elapsed_time: 300s
+        otlp:
+          endpoint: "http://10.2.0.140/jaeger-collector.default.svc.cluster.local:4317"  # OTLP grpc port (We need to change the endpoint, have to add ingress first)
+          tls:
+            insecure: true
       service:
         extensions: [headers_setter]
         pipelines:
@@ -169,7 +173,9 @@ collectors:
             receivers: [ otlp ]
             processors: [ attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
             exporters: [ debug, prometheusremotewrite]
-          traces: null
+          traces:
+            receivers: [ otlp ]
+            exporters: [ clickhouse ]
 
 instrumentation:
   enabled: false
