@@ -47,7 +47,7 @@ collectors:
             exporters: [ otlp ]
           traces:
             receivers: [ otlp ]
-            exporters: [ clickhouse ]
+            exporters: [ otlp ]
           logs:
             receivers: [filelog, k8sobjects]
             processors: [k8sattributes]
@@ -125,6 +125,12 @@ collectors:
                 - set(resource.attributes["tenant"], "default")
                 - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
                   where resource.attributes["ace.client"] == "true"
+          trace_statements:
+            - context: resource
+              statements:
+                - set(resource.attributes["tenant"], "default")
+                - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
+                  where resource.attributes["ace.client"] == "true"
         groupbyattrs/tenant:
           keys: [tenant]
         context/tenant:
@@ -149,9 +155,9 @@ collectors:
         clickhouse:
           endpoint: "tcp://10.2.0.160:9000"
           username: "admin"
-          password: "3tNxaPmnz1u8NDBJ"
+          password: "NC4csTrSnPlWjqP1"
           database: "default"
-          create_schema: false
+          create_schema: true
           logs_table_name: otel_logs
           traces_table_name: otel_traces
           timeout: 10s
@@ -178,6 +184,7 @@ collectors:
             exporters: [ debug, prometheusremotewrite]
           traces:
             receivers: [ otlp ]
+            processors: [ attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
             exporters: [ clickhouse ]
 
 instrumentation:
