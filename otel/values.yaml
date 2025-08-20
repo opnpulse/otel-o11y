@@ -45,7 +45,9 @@ collectors:
             receivers: [ prometheus ]
             processors: [ k8sattributes ]
             exporters: [ otlp ]
-          traces: null
+          traces:
+            receivers: [ otlp ]
+            exporters: [ otlp ]
           logs:
             receivers: [filelog, k8sobjects]
             processors: [k8sattributes]
@@ -123,6 +125,12 @@ collectors:
                 - set(resource.attributes["tenant"], "default")
                 - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
                   where resource.attributes["ace.client"] == "true"
+          trace_statements:
+            - context: resource
+              statements:
+                - set(resource.attributes["tenant"], "default")
+                - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
+                  where resource.attributes["ace.client"] == "true"
         groupbyattrs/tenant:
           keys: [tenant]
         context/tenant:
@@ -141,16 +149,17 @@ collectors:
         debug:
           verbosity: detailed
         prometheusremotewrite:
-          endpoint: "http://10.2.0.140/receiver/api/v1/receive"
+          endpoint: "http://10.2.0.160/receiver/api/v1/receive"
           auth:
             authenticator: headers_setter
         clickhouse:
-          endpoint: "tcp://10.2.0.140:9000"
+          endpoint: "tcp://10.2.0.160:9000"
           username: "admin"
-          password: "3tNxaPmnz1u8NDBJ"
+          password: "NC4csTrSnPlWjqP1"
           database: "default"
-          create_schema: false
+          create_schema: true
           logs_table_name: otel_logs
+          traces_table_name: otel_traces
           timeout: 10s
           sending_queue:
             queue_size: 10000
@@ -159,6 +168,10 @@ collectors:
             initial_interval: 5s
             max_interval: 30s
             max_elapsed_time: 300s
+        otlp:
+          endpoint: opentelemetry-kube-stack-gateway-collector.monitoring.svc.cluster.local:4317
+          tls:
+            insecure: true
       service:
         extensions: [headers_setter]
         pipelines:
@@ -169,7 +182,10 @@ collectors:
             receivers: [ otlp ]
             processors: [ attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
             exporters: [ debug, prometheusremotewrite]
-          traces: null
+          traces:
+            receivers: [ otlp ]
+            processors: [ attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
+            exporters: [ clickhouse ]
 
 instrumentation:
   enabled: false
