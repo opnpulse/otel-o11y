@@ -45,7 +45,9 @@ collectors:
             receivers: [ prometheus ]
             processors: [ k8sattributes ]
             exporters: [ otlp ]
-          traces: null
+          traces:
+            receivers: [ otlp ]
+            exporters: [ clickhouse ]
           logs:
             receivers: [filelog, k8sobjects]
             processors: [k8sattributes]
@@ -160,7 +162,7 @@ collectors:
             max_interval: 30s
             max_elapsed_time: 300s
         otlp:
-          endpoint: "http://10.2.0.140/jaeger-collector.default.svc.cluster.local:4317"  # OTLP grpc port (We need to change the endpoint, have to add ingress first)
+          endpoint: opentelemetry-kube-stack-gateway-collector.monitoring.svc.cluster.local:4317
           tls:
             insecure: true
       service:
