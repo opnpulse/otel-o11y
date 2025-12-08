@@ -1,0 +1,43 @@
+apiVersion: kubedb.com/v1alpha2
+kind: ClickHouse
+metadata:
+  name: ch
+  namespace: monitoring
+spec:
+  sslVerificationMode: strict
+  tls:
+    clientCaCertificateRefs:
+      - name: "tls-ssl-minio"
+        key: public.crt
+    issuerRef:
+      apiGroup: "cert-manager.io"
+      kind: Issuer
+      name: ace-gw
+    certificates:
+      - alias: server
+        subject:
+          organizations:
+            - ace
+        dnsNames:
+          - ace
+        ipAddresses:
+          - "10.2.0.183"
+  configSecret:
+    name: my-config-xml
+  version: 24.4.1
+  replicas: 1
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 3Gi
+  deletionPolicy: WipeOut
+
+
+
+
+
+
+
+

@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/name: namespace
     app.kubernetes.io/part-of: thanos-operator
     control-plane: controller-manager
-  name: thanos-operator-system
+  name: monitoring
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -22,7 +22,7 @@ metadata:
     app.kubernetes.io/name: serviceaccount
     app.kubernetes.io/part-of: thanos-operator
   name: thanos-operator-controller-manager
-  namespace: thanos-operator-system
+  namespace: monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -35,7 +35,7 @@ metadata:
     app.kubernetes.io/name: role
     app.kubernetes.io/part-of: thanos-operator
   name: thanos-operator-leader-election-role
-  namespace: thanos-operator-system
+  namespace: monitoring
 rules:
   - apiGroups:
       - ""
@@ -507,7 +507,7 @@ metadata:
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: thanos-operator
   name: thanos-operator-leader-election-rolebinding
-  namespace: thanos-operator-system
+  namespace: monitoring
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -515,7 +515,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: thanos-operator-controller-manager
-    namespace: thanos-operator-system
+    namespace: monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -535,7 +535,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: thanos-operator-controller-manager
-    namespace: thanos-operator-system
+    namespace: monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -555,7 +555,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: thanos-operator-controller-manager
-    namespace: thanos-operator-system
+    namespace: monitoring
 ---
 apiVersion: v1
 kind: Service
@@ -569,7 +569,7 @@ metadata:
     app.kubernetes.io/part-of: thanos-operator
     control-plane: controller-manager
   name: thanos-operator-controller-manager-metrics-service
-  namespace: thanos-operator-system
+  namespace: monitoring
 spec:
   ports:
     - name: https
@@ -591,7 +591,7 @@ metadata:
     app.kubernetes.io/part-of: thanos-operator
     control-plane: controller-manager
   name: thanos-operator-controller-manager
-  namespace: thanos-operator-system
+  namespace: monitoring
 spec:
   replicas: 1
   selector:
@@ -636,7 +636,7 @@ spec:
             - --zap-log-level=debug
           command:
             - /manager
-          image: quay.io/thanos/thanos-operator:main
+          image: quay.io/thanos/thanos-operator:main-2025-10-23-e28d488
           livenessProbe:
             httpGet:
               path: /healthz
@@ -679,7 +679,7 @@ metadata:
     app.kubernetes.io/part-of: thanos-operator
     control-plane: controller-manager
   name: thanos-operator-controller-manager-metrics-monitor
-  namespace: thanos-operator-system
+  namespace: monitoring
 spec:
   endpoints:
     - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token

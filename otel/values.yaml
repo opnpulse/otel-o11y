@@ -1,7 +1,12 @@
-clusterName: ace
+clusterName: rakib-spoke-2
 
 collectors:
   daemon:
+    env:
+      - name: K8S_NODE_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
     suffix: agent
     enabled: true
     scrape_configs_file: "config/kubelet_scrape_configs.yaml"
@@ -54,10 +59,10 @@ collectors:
             receivers: [ prometheus ]
             processors: [ k8sattributes ]
             exporters: [ otlp ]
-          traces:
-            receivers: [ otlp ]
-            processors: [ k8sattributes ]
-            exporters: [ otlp ]
+#          traces:
+#            receivers: [ otlp ]
+#            processors: [ k8sattributes ]
+#            exporters: [ otlp ]
           logs:
             receivers: [filelog]
             processors: [k8sattributes]
@@ -75,23 +80,37 @@ collectors:
   cluster:
     suffix: gateway
     enabled: true
+    volumeMounts:
+      - name: clickhouse-certs
+        mountPath: /etc/certs
+        readOnly: true
+      - name: thanos-certs
+        mountPath: /etc/thanos/certs
+        readOnly: true
+    volumes:
+      - name: clickhouse-certs
+        secret:
+          secretName: ch-client-cert
+      - name: thanos-certs
+        secret:
+          secretName: otel-client-cert
     labels:
       otel-collector-type: deployment
     image:
       repository: rokibulhasan114/opentelemetry-collector-ace
       tag: v0.1.0
       pullPolicy: Always
-    env:
-      - name: CLICKHOUSE_USERNAME
-        valueFrom:
-          secretKeyRef:
-            name: ch-auth
-            key: username
-      - name: CLICKHOUSE_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: ch-auth
-            key: password
+#    env:
+#      - name: CLICKHOUSE_USERNAME
+#        valueFrom:
+#          secretKeyRef:
+#            name: ch-auth
+#            key: username
+#      - name: CLICKHOUSE_PASSWORD
+#        valueFrom:
+#          secretKeyRef:
+#            name: ch-auth
+#            key: password
     presets:
       clusterMetrics:
         enabled: false
@@ -132,7 +151,7 @@ collectors:
         attributes/example:
           actions:
             - key: cluster
-              value: "ace"
+              value: "rakib-spoke-2"
               action: upsert
         groupbyattrs:
           keys: [source_id]
@@ -144,12 +163,12 @@ collectors:
                 - set(resource.attributes["tenant"], "default")
                 - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
                   where resource.attributes["ace.client"] == "true"
-          trace_statements:
-            - context: resource
-              statements:
-                - set(resource.attributes["tenant"], "default")
-                - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
-                  where resource.attributes["ace.client"] == "true"
+#          trace_statements:
+#            - context: resource
+#              statements:
+#                - set(resource.attributes["tenant"], "default")
+#                - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
+#                  where resource.attributes["ace.client"] == "true"
         groupbyattrs/tenant:
           keys: [tenant]
         context/tenant:
@@ -168,16 +187,26 @@ collectors:
         debug:
           verbosity: detailed
         prometheusremotewrite:
-          endpoint: "http://10.2.0.236/receiver/api/v1/receive"
+          endpoint: "https://10.2.0.183/receiver/api/v1/receive"
           auth:
             authenticator: headers_setter
           target_info:
             enabled: false
+          tls:
+            ca_file: /etc/thanos/certs/ca.crt
+            cert_file: /etc/thanos/certs/tls.crt
+            key_file: /etc/thanos/certs/tls.key
+            insecure_skip_verify: false
         clickhouse:
-          endpoint: "tcp://10.2.0.236:9000"
-          username: "admin"
-          password: "CR6YLxxoYQmmZp3I"
+          endpoint: "tcp://10.2.0.183:10000?secure=true"
+          username: "ace"
+#          password: "QEFNeAa7hUGjJjVY"
           database: "default"
+          tls:
+            ca_file: /etc/certs/ca.crt
+            cert_file: /etc/certs/tls.crt
+            key_file: /etc/certs/tls.key
+            insecure_skip_verify: false
           create_schema: false
           logs_table_name: otel_logs
           timeout: 10s
@@ -202,10 +231,10 @@ collectors:
             receivers: [ otlp ]
             processors: [ attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
             exporters: [prometheusremotewrite]
-          traces:
-            receivers: [ otlp ]
-            processors: [ k8sattributes, attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant ]
-            exporters: [ clickhouse ]
+#          traces:
+#            receivers: [ otlp ]
+#            processors: [ k8sattributes, attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant ]
+#            exporters: [ clickhouse ]
 
 instrumentation:
   enabled: false

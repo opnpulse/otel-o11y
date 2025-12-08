@@ -1,0 +1,33 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: thanos-server-cert
+  namespace: monitoring
+spec:
+  commonName: thanos
+  dnsNames:
+  - '*.thanos-receive-router-ts-1.monitoring.svc.cluster.local'
+  - ace
+  - monitoring
+  - thanos-receive-router-ts-1
+  - thanos-receive-router-ts-1.monitoring.svc
+  - thanos-receive-router-ts-1.monitoring.svc.cluster.local
+  - localhost
+  ipAddresses:
+  - 10.2.0.183
+  - 127.0.0.1
+  issuerRef:
+    group: cert-manager.io
+    kind: Issuer
+    name: ace-gw
+  renewBefore: 5m0s
+  secretName: thanos-server-cert
+  subject:
+    organizations:
+    - ace
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+  - client auth
+

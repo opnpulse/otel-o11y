@@ -5,13 +5,13 @@ metadata:
     control-plane: tenant-operator
     app.kubernetes.io/name: tenant-operator
     app.kubernetes.io/managed-by: kustomize
-  name: thanos-operator-system
+  name: monitoring
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: tenant-operator
-  namespace: thanos-operator-system
+  namespace: monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -20,7 +20,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: tenant-operator
-    namespace: thanos-operator-system
+    namespace: monitoring
 roleRef:
   kind: ClusterRole
   name: cluster-admin
@@ -30,7 +30,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tenant-operator
-  namespace: thanos-operator-system
+  namespace: monitoring
   labels:
     control-plane: tenant-operator
     app.kubernetes.io/name: tenant-operator

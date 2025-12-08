@@ -83,3 +83,19 @@ helm upgrade -i opentelemetry-kube-stack -n monitoring open-telemetry/openteleme
 ```shell
 kubectl apply -f ./tenant-operator/tenant.yaml
 ```
+
+- install prom-label-proxy on spoke/imported clusters
+
+```
+helm upgrade -install prom-label-proxy prometheus-community/prom-label-proxy --set image.pullPolicy=Always --set image.repository=rokibulhasan114/prom-label-proxy --set image.tag=v0.0.1 --set config.upstream=https://10.2.0.216/querier --set config.label=tenant_id --namespace=monitoring
+```
+```
+env:
+- name: LOGS_URL
+  value: https://10.2.0.216/logs
+- name: TRACES_URL
+  value: https://10.2.0.216/traces
+- name: PLATFORM_APISERVER_DOMAIN
+  value: https://10.2.0.66/
+
+```

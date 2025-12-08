@@ -2,7 +2,7 @@ kind: Secret
 apiVersion: v1
 metadata:
   name: thanos-object-storage
-  namespace: thanos-operator-system
+  namespace: monitoring
 stringData:
   thanos.yaml: |
     type: S3

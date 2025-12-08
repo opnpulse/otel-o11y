@@ -1,0 +1,8 @@
+apiVersion: v1
+data:
+  password: eDJUcjJrS2NGSHVWSnFNRVB3bk4=
+kind: Secret
+metadata:
+  name: ace-gw-jkscred
+  namespace: thanos-operator-system
+type: Opaque

@@ -1,0 +1,149 @@
+apiVersion: monitoring.k8s.appscode.com/v1alpha1
+kind: TelemetryStack
+metadata:
+  name: ts-1
+spec:
+  logs:
+    clickhouse:
+      databaseRef:
+        name: ch
+        namespace: monitoring
+
+  traces:
+    clickhouse:
+      databaseRef:
+        name: ch
+        namespace: monitoring
+
+  metrics:
+    thanos:
+      objectStorageConfig:
+        secretName: thanos-object-storage
+        key: thanos.yaml
+      compact:
+        storageSize: "1Gi"
+        retentionConfig:
+          - raw: "30d"
+            fiveMinutes: "30d"
+            oneHour: "30d"
+        #      - raw: "90d"
+        #        fiveMinutes: "90d"
+        #        oneHour: "90d"
+        #      - raw: "180d"
+        #        fiveMinutes: "180d"
+        #        oneHour: "180d"
+        shardingConfig:
+          - shardName: shard-30d
+            externalLabelSharding:
+              - label: tenant-retention-period
+                value: 30d
+        #      - shardName: shard-90d
+        #        externalLabelSharding:
+        #          - label: tenant-retention-period
+        #            value: 90d
+        #      - shardName: shard-180d
+        #        externalLabelSharding:
+        #          - label: tenant-retention-period
+        #            value: 180d
+        additionalVolumes:
+          - name: thanos-certs
+            secret:
+              secretName: tls-ssl-minio
+              items:
+                - key: public.crt
+                  path: public.crt
+        additionalVolumeMounts:
+          - name: thanos-certs
+            mountPath: /etc/thanos/certs
+            readOnly: true
+
+      store:
+        storageSize: "1Gi"
+        ignoreDeletionMarksDelay: "2h"
+        shardingStrategy:
+          type: block
+          shards: 2
+        additionalVolumes:
+          - name: thanos-certs
+            secret:
+              secretName: tls-ssl-minio
+              items:
+                - key: public.crt
+                  path: public.crt
+        additionalVolumeMounts:
+          - name: thanos-certs
+            mountPath: /etc/thanos/certs
+            readOnly: true
+
+      query:
+        queryFrontend:
+          replicas: 2
+        additionalVolumes:
+          - name: thanos-certs
+            secret:
+              secretName: tls-ssl-minio
+              items:
+                - key: public.crt
+                  path: public.crt
+        additionalVolumeMounts:
+          - name: thanos-certs
+            mountPath: /etc/thanos/certs
+            readOnly: true
+        additionalArgs:
+          - "--web.external-prefix=querier"
+
+      receive:
+        ingesterSpec:
+          hashrings:
+            - name: 1st
+              storageSize: "1Gi"
+              tsdbConfig:
+                retention: 1h
+              tenancyConfig:
+                tenantMatcherType: exact
+              #            matchers:
+              #              - tenant-a
+              #              - tenant-b
+              replicas: 1
+          #          externalLabels:
+          #            tenant: $(POD_NAME)
+          #        - name: 2nd
+          #          storageSize: "1Gi"
+          #          tsdbConfig:
+          #            retention: 22h
+          #          tenancyConfig:
+          #            tenantMatcherType: exact
+          ##            matchers:
+          ##              - "team-.*"
+          #          replicas: 1
+          ##          externalLabels:
+          ##            tenant: $(POD_NAME)
+          additionalVolumes:
+            - name: thanos-certs
+              secret:
+                secretName: tls-ssl-minio
+                items:
+                  - key: public.crt
+                    path: public.crt
+          additionalVolumeMounts:
+            - name: thanos-certs
+              mountPath: /etc/thanos/certs
+              readOnly: true
+        routerSpec:
+          externalLabels:
+            receive: "true"
+          replicas: 1
+          replicationFactor: 1
+          additionalVolumes:
+            - name: thanos-certs
+              secret:
+                secretName: thanos-server-cert
+          additionalVolumeMounts:
+            - name: thanos-certs
+              mountPath: /etc/thanos/certs
+              readOnly: true
+          additionalArgs:
+            - "--remote-write.server-tls-cert=/etc/thanos/certs/tls.crt"
+            - "--remote-write.server-tls-key=/etc/thanos/certs/tls.key"
+            - "--remote-write.server-tls-client-ca=/etc/thanos/certs/ca.crt"
+            - "--remote-write.server-tls-min-version=1.2"

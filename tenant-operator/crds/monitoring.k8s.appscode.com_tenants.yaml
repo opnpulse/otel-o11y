@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
-  name: tenants.thanos.k8s.appscode.com
+  name: tenants.monitoring.k8s.appscode.com
 spec:
-  group: thanos.k8s.appscode.com
+  group: monitoring.k8s.appscode.com
   names:
     kind: Tenant
     listKind: TenantList
@@ -119,18 +119,29 @@ spec:
                 - retention
                 - targetEndpoint
                 type: object
-              tenantID:
-                type: string
-              thanosDeploymentRef:
+              telemetryStackRef:
                 properties:
                   name:
                     default: ""
                     type: string
                 type: object
                 x-kubernetes-map-type: atomic
+              tenantID:
+                type: string
+              traces:
+                properties:
+                  retention:
+                    pattern: ^(-?(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)|([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})))$
+                    type: string
+                  targetEndpoint:
+                    type: string
+                required:
+                - retention
+                - targetEndpoint
+                type: object
             required:
+            - telemetryStackRef
             - tenantID
-            - thanosDeploymentRef
             type: object
           status:
             properties:

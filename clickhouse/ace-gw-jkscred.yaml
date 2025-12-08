@@ -1,0 +1,8 @@
+apiVersion: v1
+data:
+  password: aWJBakUycEJ6b1UzQ2FFczR1VEI=
+kind: Secret
+metadata:
+  name: ace-gw-jkscred
+  namespace: monitoring
+type: Opaque
