@@ -16,6 +16,31 @@ spec:
         - path:
             type: PathPrefix
             value: /telemetry
+        - path:
+            type: PathPrefix
+            value: /v1
+        - path:
+            type: PathPrefix
+            value: /api/v1
       backendRefs:
         - name: prom-label-proxy
           port: 8080
+
+---
+
+apiVersion: gateway.networking.k8s.io/v1alpha3
+kind: BackendTLSPolicy
+metadata:
+  name: prom-label-proxy-backend-tls
+  namespace: monitoring
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: prom-label-proxy
+  validation:
+    caCertificateRefs:
+      - group: ""
+        kind: Secret
+        name: otel-client-cert
+    hostname: prom-label-proxy.monitoring.svc.cluster.local

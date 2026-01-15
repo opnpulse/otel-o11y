@@ -142,8 +142,8 @@ spec:
             - name: thanos-certs
               mountPath: /etc/thanos/certs
               readOnly: true
-          additionalArgs:
-            - "--remote-write.server-tls-cert=/etc/thanos/certs/tls.crt"
-            - "--remote-write.server-tls-key=/etc/thanos/certs/tls.key"
-            - "--remote-write.server-tls-client-ca=/etc/thanos/certs/ca.crt"
-            - "--remote-write.server-tls-min-version=1.2"
+#          additionalArgs:
+#            - "--remote-write.server-tls-cert=/etc/thanos/certs/tls.crt"
+#            - "--remote-write.server-tls-key=/etc/thanos/certs/tls.key"
+#            - "--remote-write.server-tls-client-ca=/etc/thanos/certs/ca.crt"
+#            - "--remote-write.server-tls-min-version=1.2"

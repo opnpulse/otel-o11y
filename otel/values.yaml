@@ -1,4 +1,4 @@
-clusterName: rakib-spoke-2
+clusterName: spoke-1
 
 collectors:
   daemon:
@@ -81,17 +81,11 @@ collectors:
     suffix: gateway
     enabled: true
     volumeMounts:
-      - name: clickhouse-certs
+      - name: prom-proxy-certs
         mountPath: /etc/certs
         readOnly: true
-      - name: thanos-certs
-        mountPath: /etc/thanos/certs
-        readOnly: true
     volumes:
-      - name: clickhouse-certs
-        secret:
-          secretName: ch-client-cert
-      - name: thanos-certs
+      - name: prom-proxy-certs
         secret:
           secretName: otel-client-cert
     labels:
@@ -151,7 +145,7 @@ collectors:
         attributes/example:
           actions:
             - key: cluster
-              value: "rakib-spoke-2"
+              value: "spoke-1"
               action: upsert
         groupbyattrs:
           keys: [source_id]
@@ -187,20 +181,20 @@ collectors:
         debug:
           verbosity: detailed
         prometheusremotewrite:
-          endpoint: "https://10.2.0.183/receiver/api/v1/receive"
+          endpoint: "https://10.2.0.82/api/v1/receive"
           auth:
             authenticator: headers_setter
           target_info:
             enabled: false
           tls:
-            ca_file: /etc/thanos/certs/ca.crt
-            cert_file: /etc/thanos/certs/tls.crt
-            key_file: /etc/thanos/certs/tls.key
+            ca_file: /etc/certs/ca.crt
+            cert_file: /etc/certs/tls.crt
+            key_file: /etc/certs/tls.key
             insecure_skip_verify: false
         clickhouse:
-          endpoint: "tcp://10.2.0.183:10000?secure=true"
+          endpoint: "https://10.2.0.82/v1/logs?database=default"
           username: "ace"
-#          password: "QEFNeAa7hUGjJjVY"
+          password: "QEFNeAa7hUGjJjVY"
           database: "default"
           tls:
             ca_file: /etc/certs/ca.crt

@@ -10,8 +10,12 @@ spec:
     kind: Issuer
     name: ace-gw
   commonName: otel-gateway
+  subject:
+    organizations:
+      - ace
+    organizationalUnits:
+      - EnableTenant=True
   usages:
-  - digital signature
-  - key encipherment
-  - client auth
-
+    - digital signature
+    - key encipherment
+    - client auth

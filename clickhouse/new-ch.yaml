@@ -21,7 +21,7 @@ spec:
         dnsNames:
           - ace
         ipAddresses:
-          - "10.2.0.183"
+          - "10.2.0.174"
   configSecret:
     name: my-config-xml
   version: 24.4.1

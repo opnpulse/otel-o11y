@@ -1,0 +1,33 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: prom-proxy-cert
+  namespace: monitoring
+spec:
+  commonName: prom-proxy
+  dnsNames:
+    - '*.prom-label-proxy.monitoring.svc.cluster.local'
+    - ace
+    - monitoring
+    - prom-label-proxy
+    - prom-label-proxy.monitoring.svc
+    - prom-label-proxy.monitoring.svc.cluster.local
+    - localhost
+  ipAddresses:
+    - 10.2.0.82
+    - 127.0.0.1
+  issuerRef:
+    group: cert-manager.io
+    kind: Issuer
+    name: ace-gw
+  renewBefore: 5m0s
+  secretName: prom-proxy-cert
+  subject:
+    organizations:
+      - ace
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+    - client auth
+

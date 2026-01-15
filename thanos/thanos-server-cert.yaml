@@ -14,7 +14,7 @@ spec:
   - thanos-receive-router-ts-1.monitoring.svc.cluster.local
   - localhost
   ipAddresses:
-  - 10.2.0.183
+  - 10.2.0.82
   - 127.0.0.1
   issuerRef:
     group: cert-manager.io

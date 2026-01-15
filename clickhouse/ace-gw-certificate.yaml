@@ -5,7 +5,7 @@ metadata:
   namespace: monitoring
 spec:
   ipAddresses:
-  - 10.2.0.183
+  - 10.2.0.82
   issuerRef:
     group: cert-manager.io
     kind: Issuer
