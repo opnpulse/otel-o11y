@@ -14,7 +14,7 @@ spec:
     - prom-label-proxy.monitoring.svc.cluster.local
     - localhost
   ipAddresses:
-    - 10.2.0.82
+    - 10.2.0.187
     - 127.0.0.1
   issuerRef:
     group: cert-manager.io

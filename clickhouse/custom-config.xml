@@ -6,11 +6,12 @@
             </local>
             <s3>
                 <type>s3</type>
-                <endpoint>https://minio.minio.svc.cluster.local:9000/test/logs</endpoint>
+                <endpoint>https://minio.minio.svc.cluster.local:9000/telemetry/logs/</endpoint>
                 <access_key_id>rootuser</access_key_id>
                 <secret_access_key>rootpass123</secret_access_key>
                 <region>us-east-1</region>
                 <metadata_path>/var/lib/clickhouse/disks/s3_disk/</metadata_path>
+                <skip_verify>1</skip_verify>
             </s3>
         </disks>
         <policies>

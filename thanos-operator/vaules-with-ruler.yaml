@@ -1,0 +1,7 @@
+objectStorage:
+  bucket: "telemetry"
+  endpoint: "minio.minio.svc.cluster.local:9000/"
+  accessKey: "rootuser"
+  secretKey: "rootpass123"
+  prefix: "metrics"
+  region: "us-east-1"

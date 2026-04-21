@@ -1,11 +1,11 @@
 apiVersion: monitoring.k8s.appscode.com/v1alpha1
 kind: Tenant
 metadata:
-  name: org1
+  name: cluster-spoke-2
 spec:
-  tenantID: "org1"
+  tenantID: "cluster:spoke-2"
   telemetryStackRef:
-    name: ts-1
+    name: telemetry-stack
   metrics:
     targetEndpoint: "http://thanos-receiver.monitoring.svc:19291"
     retention:

@@ -1,7 +1,26 @@
-clusterName: spoke-1
+clusterName: spoke-2
+
+opentelemetry-operator:
+  admissionWebhooks:
+    certManager:
+      enabled: false
+  manager:
+    featureGatesMap:
+      operator.targetallocator.mtls: true
+    createRbacPermissions: true
+admissionWebhooks:
+  autoGenerateCert:
+    enabled: true
 
 collectors:
   daemon:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 2Gi
+      requests:
+        cpu: 200m
+        memory: 1Gi
     env:
       - name: K8S_NODE_NAME
         valueFrom:
@@ -36,6 +55,15 @@ collectors:
         debug:
           verbosity: detailed
       processors:
+        attributes/node:
+          actions:
+            - key: node
+              value: "${K8S_NODE_NAME}"
+              action: upsert
+        memory_limiter:
+          check_interval: 1s
+          limit_percentage: 75
+          spike_limit_percentage: 15
         k8sattributes:
           extract:
             metadata:
@@ -44,28 +72,23 @@ collectors:
               - tag_name: ace.client
                 key: ace.appscode.com/client-org
                 from: namespace
-#          pod_association:
-#            - sources:
-#                - from: resource_attribute
-#                  name: k8s.pod.ip
-#            - sources:
-#                - from: resource_attribute
-#                  name: k8s.pod.uid
-#            - sources:
-#                - from: connection
+        batch:
+          send_batch_size: 512
+          send_batch_max_size: 1024
+          timeout: 20s
       service:
         pipelines:
           metrics:
             receivers: [ prometheus ]
-            processors: [ k8sattributes ]
+            processors: [ memory_limiter, k8sattributes, attributes/node, batch ]
             exporters: [ otlp ]
-#          traces:
-#            receivers: [ otlp ]
-#            processors: [ k8sattributes ]
-#            exporters: [ otlp ]
+          traces:
+            receivers: [ otlp ]
+            processors: [ memory_limiter, k8sattributes ]
+            exporters: [ otlp ]
           logs:
             receivers: [filelog]
-            processors: [k8sattributes]
+            processors: [ memory_limiter, k8sattributes]
             exporters: [otlp]
     presets:
       logsCollection:
@@ -78,6 +101,17 @@ collectors:
         enabled: true
 
   cluster:
+    hostAliases:
+      - ip: "10.2.0.187"
+        hostnames:
+          - "prom-label-proxy.monitoring.svc.cluster.local"
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 512Mi
     suffix: gateway
     enabled: true
     volumeMounts:
@@ -94,17 +128,6 @@ collectors:
       repository: rokibulhasan114/opentelemetry-collector-ace
       tag: v0.1.0
       pullPolicy: Always
-#    env:
-#      - name: CLICKHOUSE_USERNAME
-#        valueFrom:
-#          secretKeyRef:
-#            name: ch-auth
-#            key: username
-#      - name: CLICKHOUSE_PASSWORD
-#        valueFrom:
-#          secretKeyRef:
-#            name: ch-auth
-#            key: password
     presets:
       clusterMetrics:
         enabled: false
@@ -115,6 +138,7 @@ collectors:
             grpc:
               endpoint: 0.0.0.0:4317
               include_metadata: true
+              max_recv_msg_size_mib: 32
             http:
               endpoint: 0.0.0.0:4318
               include_metadata: true
@@ -125,6 +149,10 @@ collectors:
               key: THANOS-TENANT
               from_context: tenant-id
       processors:
+        memory_limiter:
+          check_interval: 1s
+          limit_percentage: 75
+          spike_limit_percentage: 20
         k8sattributes:
           extract:
             metadata:
@@ -133,19 +161,10 @@ collectors:
               - tag_name: ace.client
                 key: ace.appscode.com/client-org
                 from: namespace
-#          pod_association:
-#            - sources:
-#                - from: resource_attribute
-#                  name: k8s.pod.ip
-#            - sources: # this source seems to help identify the pods and the k8s metadata
-#                - from: resource_attribute
-#                  name: k8s.pod.uid
-#            - sources:
-#                - from: connection
         attributes/example:
           actions:
             - key: cluster
-              value: "spoke-1"
+              value: "spoke-2"
               action: upsert
         groupbyattrs:
           keys: [source_id]
@@ -157,14 +176,14 @@ collectors:
                 - set(resource.attributes["tenant"], "default")
                 - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
                   where resource.attributes["ace.client"] == "true"
-#          trace_statements:
-#            - context: resource
-#              statements:
-#                - set(resource.attributes["tenant"], "default")
-#                - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
-#                  where resource.attributes["ace.client"] == "true"
-        groupbyattrs/tenant:
-          keys: [tenant]
+          trace_statements:
+            - context: resource
+              statements:
+                - set(resource.attributes["tenant"], "default")
+                - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
+                  where resource.attributes["ace.client"] == "true"
+#        groupbyattrs/tenant:
+#          keys: [tenant]
         context/tenant:
           actions:
             - action: upsert
@@ -172,16 +191,17 @@ collectors:
               value: anonymous
               from_attribute: tenant
         batch/tenant:
-          send_batch_size: 1000
-          send_batch_max_size: 2000
-          timeout: 1s
+          send_batch_size: 256
+          send_batch_max_size: 512
           metadata_keys:
             - tenant-id
       exporters:
         debug:
           verbosity: detailed
         prometheusremotewrite:
-          endpoint: "https://10.2.0.82/api/v1/receive"
+#          endpoint: "https://10.2.0.187:8443/api/v1/receive"
+          endpoint: "https://prom-label-proxy.monitoring.svc.cluster.local:8443/api/v1/receive"
+          timeout: 30s
           auth:
             authenticator: headers_setter
           target_info:
@@ -191,8 +211,17 @@ collectors:
             cert_file: /etc/certs/tls.crt
             key_file: /etc/certs/tls.key
             insecure_skip_verify: false
+          retry_on_failure:
+            enabled: true
+            initial_interval: 5s
+            max_interval: 30s
+            max_elapsed_time: 120s
+          remote_write_queue:
+            queue_size: 200
+            num_consumers: 5
         clickhouse:
-          endpoint: "https://10.2.0.82/v1/logs?database=default"
+#          endpoint: "https://10.2.0.187:8443/?database=default&secure=true"
+          endpoint: "https://prom-label-proxy.monitoring.svc.cluster.local:8443/?database=default&secure=true"
           username: "ace"
           password: "QEFNeAa7hUGjJjVY"
           database: "default"
@@ -205,12 +234,12 @@ collectors:
           logs_table_name: otel_logs
           timeout: 10s
           sending_queue:
-            queue_size: 10000
+            queue_size: 200
           retry_on_failure:
             enabled: true
             initial_interval: 5s
             max_interval: 30s
-            max_elapsed_time: 300s
+            max_elapsed_time: 120s
         otlp:
           endpoint: opentelemetry-kube-stack-gateway-collector.monitoring.svc.cluster.local:4317
           tls:
@@ -219,16 +248,19 @@ collectors:
         extensions: [headers_setter]
         pipelines:
           logs:
+            processors: [ memory_limiter ]
             receivers: [otlp]
             exporters: [clickhouse]
           metrics:
             receivers: [ otlp ]
-            processors: [ attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
+#            processors: [ attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
+            processors: [ memory_limiter, attributes/example, transform/tenant, context/tenant, batch/tenant]
             exporters: [prometheusremotewrite]
-#          traces:
-#            receivers: [ otlp ]
+          traces:
+            receivers: [ otlp ]
 #            processors: [ k8sattributes, attributes/example, groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant ]
-#            exporters: [ clickhouse ]
+            processors: [ memory_limiter, attributes/example, transform/tenant, context/tenant, batch/tenant]
+            exporters: [ clickhouse ]
 
 instrumentation:
   enabled: false

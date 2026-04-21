@@ -7,12 +7,14 @@ stringData:
   thanos.yaml: |
     type: S3
     config:
-      bucket: "test"
+      bucket: "telemetry"
       endpoint: "minio.minio.svc.cluster.local:9000"
       access_key: "rootuser"
       secret_key: "rootpass123"
       http_config:
+        insecure_skip_verify: true
         tls_config:
           ca_file: /etc/thanos/certs/public.crt
+          insecure_skip_verify: true
     prefix: "metrics"
 type: Opaque

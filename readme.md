@@ -87,7 +87,7 @@ kubectl apply -f ./tenant-operator/tenant.yaml
 - install prom-label-proxy on spoke/imported clusters
 
 ```
-helm upgrade -install prom-label-proxy prometheus-community/prom-label-proxy --set image.pullPolicy=Always --set image.repository=rokibulhasan114/prom-label-proxy --set image.tag=v0.0.1 --set config.upstream=https://10.2.0.82/querier --set config.label=tenant_id --namespace=monitoring
+helm upgrade -install prom-label-proxy prometheus-community/prom-label-proxy --set image.pullPolicy=Always --set image.repository=rokibulhasan114/prom-label-proxy --set image.tag=v0.0.1 --set config.upstream=https://10.2.0.187/querier --set config.label=tenant_id --namespace=monitoring
 ```
 ```
 env:

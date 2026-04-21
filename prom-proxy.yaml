@@ -5,8 +5,6 @@ metadata:
     deployment.kubernetes.io/revision: "7"
     meta.helm.sh/release-name: prom-label-proxy
     meta.helm.sh/release-namespace: monitoring
-  creationTimestamp: "2026-01-11T16:11:12Z"
-  generation: 7
   labels:
     app.kubernetes.io/instance: prom-label-proxy
     app.kubernetes.io/managed-by: Helm
@@ -15,8 +13,6 @@ metadata:
     helm.sh/chart: prom-label-proxy-0.17.0
   name: prom-label-proxy
   namespace: monitoring
-  resourceVersion: "3147302"
-  uid: 99173cfc-3dc6-4b5d-a511-613e114beada
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -61,11 +57,11 @@ spec:
               key: password
               name: ch-auth
         - name: LOGS_URL
-          value: https://ch.monitoring.svc:8123
+          value: http://ch.monitoring.svc:8123
         - name: TRACES_URL
-          value: https://ch.monitoring.svc:8123
+          value: http://ch.monitoring.svc:8123
         - name: PLATFORM_APISERVER_DOMAIN
-          value: https://10.2.0.88/
+          value: https://10.2.0.104/
         - name: THANOS_RECEIVER_URL
           value: http://thanos-receive-router-ts-1.monitoring.svc:19291
         image: rokibulhasan114/prom-label-proxy:perses
@@ -123,23 +119,3 @@ spec:
         secret:
           defaultMode: 420
           secretName: prom-proxy-cert
-status:
-  availableReplicas: 1
-  conditions:
-  - lastTransitionTime: "2026-01-11T18:08:37Z"
-    lastUpdateTime: "2026-01-11T18:08:37Z"
-    message: Deployment has minimum availability.
-    reason: MinimumReplicasAvailable
-    status: "True"
-    type: Available
-  - lastTransitionTime: "2026-01-11T16:25:08Z"
-    lastUpdateTime: "2026-01-11T18:24:43Z"
-    message: ReplicaSet "prom-label-proxy-59b5cb9f96" is progressing.
-    reason: ReplicaSetUpdated
-    status: "True"
-    type: Progressing
-  observedGeneration: 7
-  readyReplicas: 1
-  replicas: 2
-  unavailableReplicas: 1
-  updatedReplicas: 1
