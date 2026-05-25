@@ -64,7 +64,21 @@ Create a bucket named **`telemetry`**.
 
 In the observability cluster, navigate to:
 
-**Settings → TelemetryStack → Create new stack**
+**Settings → TelemetryStack → Create a new Telemetry stack**
+
+Fill in the configuration sections as shown below:
+
+**Configure Metrics (Compact, Store, Query, Router, Ingester):**
+
+![Create TelemetryStack - Metrics config](images/Screenshot%20from%202026-05-25%2017-41-50.png)
+
+**Ruler, Additional Config, and Configure Clickhouse:**
+
+![Create TelemetryStack - Additional config](images/Screenshot%20from%202026-05-25%2017-41-58.png)
+
+**Configure Clickhouse (Standalone / Create Topology), Configure S3, and Configure ID:**
+
+![Create TelemetryStack - Clickhouse, S3, and ID config](images/Screenshot%20from%202026-05-25%2017-42-03.png)
 
 ---
 
