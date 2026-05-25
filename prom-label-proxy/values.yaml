@@ -1,0 +1,81 @@
+clickhouse:
+  s3:
+    accessKey: rootuser
+    bucket: telemetry
+    endpoint: https://minio.minio.svc.cluster.local:9000
+    prefix: logs
+    region: us-east-1
+    secretKey: rootpass123
+    skipVerify: 1
+  tls:
+    clientCaCertificateRefs:
+      - key: public.crt
+        name: tls-ssl-minio
+infra:
+  dns:
+    provider: none
+  host: 10.2.1.1
+  hostType: ip
+  tls:
+    acme:
+      email: ""
+      gatewayName: ace-gw-seed-backend
+      solver: Gateway
+    ca:
+      cert: |
+        -----BEGIN CERTIFICATE-----
+        MIIC9TCCAd2gAwIBAgIBADANBgkqhkiG9w0BAQsFADAbMQwwCgYDVQQKEwNhY2Ux
+        CzAJBgNVBAMTAmNhMCAXDTI2MDQxMzA0NTk1OVoYDzIxMjYwMzIwMDQ1OTU5WjAb
+        MQwwCgYDVQQKEwNhY2UxCzAJBgNVBAMTAmNhMIIBIjANBgkqhkiG9w0BAQEFAAOC
+        AQ8AMIIBCgKCAQEAxJFjCTMEG2pwjcD6DCqaqnkHLU/WdGoq7ymH2+kH63nTKWbM
+        XnadNvXRNGNSuiTWIuEFrfFygrzr4EOZhn5cOzPUHeRqHYyg4RNx7P3WcniUI/eh
+        1+2gZdTvn2/NQG+X8/fMS28LRMmo07q2aHp56HbpJW2+hp4S0cIQGCOtJOP8dAZk
+        60tg8TPorBjpUDgFcmVpGJoIVjE1RTcVbTHlA0SxV0cazG6ig/nud2Bd4nGv4etB
+        PUrKyOixGVvNDh5V1MprLK+XSAPS+obdKxkx/gEik68fRiM6MXmMbQ/PX3uOfxaj
+        3xtF701sjZx62zu3IDHrFoizwYH3h8JnCBDaFwIDAQABo0IwQDAOBgNVHQ8BAf8E
+        BAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU94f0d8xH7rSR2pYNNqTR
+        gj49D0swDQYJKoZIhvcNAQELBQADggEBALBLdmncMEFq+iT09uFJKLl4/TbvcOOW
+        cgbX65zP7Lzbt1xW39VYxf/GcdQhPqQQyY7R/x7QJmP5LXkn2YBpX9klV/nbMWKW
+        BzI75HqMqrPdkiNBBBt6PzPjDedx6c9Lh21yi8F3dHkwHK+xtSZmog78PLYsDVHR
+        0ySYFbsW1qnA3HgGwWzcdkrtWeZ0M/HgnUnqX2kq1H1lqM4mPmTmQbe4KRi9MH3c
+        asLgWPYHnoIgzcw8r28OlS7UiopPO5LtKhKiUAnftaZzWpYcvOdcDeMZ2pKhWy+o
+        24/cjIDQaucUg6w2y240TAM1SeN+biO1ob4bP0Z53YrNdurG41if3z0=
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEoQIBAAKCAQEAxJFjCTMEG2pwjcD6DCqaqnkHLU/WdGoq7ymH2+kH63nTKWbM
+        XnadNvXRNGNSuiTWIuEFrfFygrzr4EOZhn5cOzPUHeRqHYyg4RNx7P3WcniUI/eh
+        1+2gZdTvn2/NQG+X8/fMS28LRMmo07q2aHp56HbpJW2+hp4S0cIQGCOtJOP8dAZk
+        60tg8TPorBjpUDgFcmVpGJoIVjE1RTcVbTHlA0SxV0cazG6ig/nud2Bd4nGv4etB
+        PUrKyOixGVvNDh5V1MprLK+XSAPS+obdKxkx/gEik68fRiM6MXmMbQ/PX3uOfxaj
+        3xtF701sjZx62zu3IDHrFoizwYH3h8JnCBDaFwIDAQABAoH/LWQ71u7wlHiI7vjp
+        QmKUOYubwm3Mo1iasHq/Bl8EIbsnxqtTrAPYgsbMyTdxLv3Hs+NLs9E9qOrOrdWm
+        rzmqjdD1b75WgGHr3Z4T0mvEyGuqlESIYnPhQtVGd1Qg/N7SuZ6erSdTImq7QtKY
+        5UdQ9t/K/EkOAhBqTWgI9MjB27JXyjMNjwRoDLT3FSdjd0MKsyZwMmATd/ZErtDg
+        uz1wTVXzSDMwTm0ycibKQfugI8qsnyhMBD0NW3ZL79eEGP3PbftXMPHblPN2jcJZ
+        UTp6mWTYnoN0oXXp2Dbp4rT0YT6Th6zhzA0hb46j///WYGUHWYW7Ik/hHjt3nczY
+        C4KRAoGBAOmXRshBg97u34RiChrvKWmvTtupomXDWB3H6P2XYQb94kQfJeQ9s9HF
+        fqt/kMcHiBWNp3nFvqgv18gx0OtwAOp72jgQhGHSRw2Yl5ilCY/G/VvHet1kuwK1
+        oKRZ8n7gLz9iYnPLBJU/wu5EQ0VQ52AuTsRg6n0643o1W94g/HEnAoGBANds3jj0
+        bx10mGNjBTkA8dB2KvLnRTF+92hApx8NUFAQqEMPJqqsMUFTVhhmySBaxP4Mb7rF
+        EtC8QSSH5ztF6MEiqs8tGRGFCeELHf02ihMoE6lVtLC8YvRETpGU+ngI1mOosRnH
+        hzsAp5ZzQs4J7z2Dg8Mif0yOp+lMh2BbiQWRAoGAMzJw1Rtm58m7O6yxQk4A6aT+
+        x65aZat2+LAEJPC012911DBvgaL0cpmytavz82t3LCIr/siUjRBPXxVsEO4vhTU4
+        Eumr2jTYVeaH83DYs6aNiTwjdbrKMkHUv7DnMV+5e074/SAWFRAwjUBw7hRZYf9E
+        TE5hlqj9ip9/TyQzsCkCgYEAvAffc5EPB4PEm0NLxLSpXI438Kqif5BV/J4qAPWK
+        +0d+xoGL+36uw1ktFcFpnh78QM60Gy52vNEEfxFMaDUd8q4CrzCq59rag55Df8fB
+        /vSFLNGNFJJqQND6TyHc+Talgnk0k87Pn1Vz8eMLFXIgau3G7WTH/heqQf01UIq0
+        77ECgYBnk87RDOpWNfxSU8/0TJEtqeB9U9RnI9GaMzgdnrqr/sv5uiBeH2n6/fbb
+        By9sjjIrJiE5bguMm1fNWVNCBcr5WxUmMrIeYYLg0dptuzJcZu5JLDurVw4eq2aw
+        prNOMOTf+0VIj3fLJxoe+5xjM8IuQxXGRpe3laipk/mIZ/iBow==
+        -----END RSA PRIVATE KEY-----
+    certificate:
+      cert: ""
+      key: ""
+    issuer: ca
+    jks:
+      keystore: null
+      password: imqr0kQYUowQ7CmqS3pt
+      truststore: null
+platform:
+  baseURL: https://10.2.0.104/

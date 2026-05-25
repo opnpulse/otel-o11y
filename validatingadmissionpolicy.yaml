@@ -1,0 +1,56 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  annotations:
+    capability.openshift.io/name: Ingress
+    include.release.openshift.io/self-managed-high-availability: "true"
+    include.release.openshift.io/single-node-developer: "true"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"admissionregistration.k8s.io/v1","kind":"ValidatingAdmissionPolicy","metadata":{"annotations":{"capability.openshift.io/name":"Ingress","include.release.openshift.io/self-managed-high-availability":"true","include.release.openshift.io/single-node-developer":"true"},"creationTimestamp":"2026-04-08T09:05:19Z","generation":1,"name":"openshift-ingress-operator-gatewayapi-crd-admission","ownerReferences":[{"apiVersion":"config.openshift.io/v1","controller":true,"kind":"ClusterVersion","name":"version","uid":"d3a4055a-4d82-46cd-bc8e-cb5b92b9ee29"}],"resourceVersion":"2086","uid":"6149903b-b8b4-4f40-9f9f-239caa2c5ec0"},"spec":{"failurePolicy":"Fail","matchConditions":[{"expression":"(request.operation == 'DELETE' ? oldObject : object).spec.group == 'gateway.networking.k8s.io' || (request.operation == 'DELETE' ? oldObject : object).spec.group == 'gateway.networking.x-k8s.io'","name":"check-only-gateway-api-crds"}],"matchConstraints":{"matchPolicy":"Equivalent","namespaceSelector":{},"objectSelector":{},"resourceRules":[{"apiGroups":["apiextensions.k8s.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE","DELETE"],"resources":["customresourcedefinitions"],"scope":"*"}]},"validations":[{"expression":"has(request.userInfo.username) \u0026\u0026 (request.userInfo.username == 'system:serviceaccount:openshift-ingress-operator:ingress-operator')","message":"Gateway API Custom Resource Definitions are managed by the Ingress Operator and may not be modified","reason":"Forbidden"},{"expression":"has(request.userInfo.extra) \u0026\u0026 ('authentication.kubernetes.io/node-name' in request.userInfo.extra) \u0026\u0026 ('authentication.kubernetes.io/pod-name' in request.userInfo.extra)","message":"this user must have both \"authentication.kubernetes.io/node-name\" and \"authentication.kubernetes.io/pod-name\" claims","reason":"Forbidden"}]},"status":{"observedGeneration":1,"typeChecking":{}}}
+  creationTimestamp: "2026-04-09T11:27:48Z"
+  generation: 1
+  name: openshift-ingress-operator-gatewayapi-crd-admission
+  ownerReferences:
+  - apiVersion: config.openshift.io/v1
+    controller: true
+    kind: ClusterVersion
+    name: version
+    uid: d3a4055a-4d82-46cd-bc8e-cb5b92b9ee29
+  resourceVersion: "820182"
+  uid: 317f2a76-920f-4dea-b1fc-32417e7f470a
+spec:
+  failurePolicy: Fail
+  matchConditions:
+  - expression: '(request.operation == ''DELETE'' ? oldObject : object).spec.group
+      == ''gateway.networking.k8s.io'' || (request.operation == ''DELETE'' ? oldObject
+      : object).spec.group == ''gateway.networking.x-k8s.io'''
+    name: check-only-gateway-api-crds
+  matchConstraints:
+    matchPolicy: Equivalent
+    namespaceSelector: {}
+    objectSelector: {}
+    resourceRules:
+    - apiGroups:
+      - apiextensions.k8s.io
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      - DELETE
+      resources:
+      - customresourcedefinitions
+      scope: '*'
+  validations:
+  - expression: has(request.userInfo.username) && (request.userInfo.username == 'system:serviceaccount:openshift-ingress-operator:ingress-operator')
+    message: Gateway API Custom Resource Definitions are managed by the Ingress Operator
+      and may not be modified
+    reason: Forbidden
+  - expression: has(request.userInfo.extra) && ('authentication.kubernetes.io/node-name'
+      in request.userInfo.extra) && ('authentication.kubernetes.io/pod-name' in request.userInfo.extra)
+    message: this user must have both "authentication.kubernetes.io/node-name" and
+      "authentication.kubernetes.io/pod-name" claims
+    reason: Forbidden
+status:
+  observedGeneration: 1
+  typeChecking: {}

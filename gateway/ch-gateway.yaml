@@ -1,0 +1,59 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: ch
+  namespace: monitoring
+spec:
+  gatewayClassName: ace
+  listeners:
+    - name: ch
+      port: 10000
+      protocol: TLS
+      tls:
+        mode: Passthrough
+      allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: TLSRoute
+        namespaces:
+          from: Same
+---
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ch-http-route
+  namespace: monitoring
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: ch
+      namespace: monitoring
+      sectionName: https
+
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /logs
+      backendRefs:
+        - name: ch
+          port: 8123
+
+---
+
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: ch
+  namespace: monitoring
+spec:
+  parentRefs:
+    - name: ch
+      namespace: monitoring
+      sectionName: ch
+  rules:
+    - backendRefs:
+        - name: ch
+          port: 9440

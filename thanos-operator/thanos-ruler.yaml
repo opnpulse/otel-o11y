@@ -1,0 +1,96 @@
+apiVersion: monitoring.thanos.io/v1alpha1
+kind: ThanosRuler
+metadata:
+  name: telemetry-stack
+  namespace: monitoring
+spec:
+  replicas: 1
+  retention: 2h
+  storage:
+    size: 1Gi
+  objectStorageConfig:
+    name: thanos-object-storage-secret
+    key: thanos.yaml
+  ruleConfigSelector:
+    matchLabels:
+      operator.thanos.io/prometheus-rule: "true"
+  alertmanagerURL: "http://thanos-operator-alertmanager.monitoring.svc.cluster.local:9093"
+  externalLabels:
+    cluster: spoke-2
+    rule_replica: "$(NAME)"
+  evaluationInterval: 1m
+  logFormat: logfmt
+  imagePullPolicy: IfNotPresent
+
+  additionalVolumes:
+    - name: ruler-certs
+      secret:
+        secretName: otel-client-cert
+    - name: ruler-query-config
+      secret:
+        secretName: thanos-ruler-query-config
+    - name: ruler-remote-write-config    # missing
+      secret:
+        secretName: thanos-ruler-remote-write-config
+    - name: thanos-certs
+      secret:
+        secretName: tls-ssl-minio
+        items:
+          - key: public.crt
+            path: public.crt
+
+  additionalVolumeMounts:
+    - name: ruler-certs
+      mountPath: /etc/certs
+      readOnly: true
+    - name: ruler-query-config
+      mountPath: /etc/ruler
+      readOnly: true
+    - name: ruler-remote-write-config    # missing
+      mountPath: /etc/ruler-rw
+      readOnly: true
+    - name: thanos-certs
+      mountPath: /etc/thanos/certs
+      readOnly: true
+
+  additionalArgs:
+    - --query.config-file=/etc/ruler/query.yaml
+    - --remote-write.config-file=/etc/ruler-rw/remote-write.yaml
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: thanos-ruler-query-config
+  namespace: monitoring
+stringData:
+  query.yaml: |
+    - http_config:
+        tls_config:
+          cert_file: /etc/certs/tls.crt
+          key_file: /etc/certs/tls.key
+          ca_file: /etc/certs/ca.crt
+          server_name: prom-label-proxy.monitoring.svc.cluster.local
+      static_configs:
+        - "10.2.1.1:10001"
+      scheme: https
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: thanos-ruler-remote-write-config
+  namespace: monitoring
+stringData:
+  remote-write.yaml: |
+    remote_write:
+      - url: https://10.2.1.1:10001/api/v1/receive
+        tls_config:
+          cert_file: /etc/certs/tls.crt
+          key_file: /etc/certs/tls.key
+          ca_file: /etc/certs/ca.crt
+          server_name: prom-label-proxy.monitoring.svc.cluster.local
+        headers:
+          Thanos-Tenant: default

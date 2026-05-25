@@ -1,0 +1,88 @@
+apiVersion: kubedb.com/v1alpha2
+kind: ClickHouse
+metadata:
+  name: ch
+  namespace: monitoring
+spec:
+  authSecret:
+    apiGroup: ""
+    kind: Secret
+    name: ch-auth
+  autoOps: {}
+  configuration:
+    secretName: my-config-xml
+  deletionPolicy: WipeOut
+  healthChecker:
+    failureThreshold: 3
+    periodSeconds: 20
+    timeoutSeconds: 10
+  podTemplate:
+    controller: {}
+    metadata: {}
+    spec:
+      containers:
+      - name: clickhouse
+        resources:
+          limits:
+            memory: 4Gi
+          requests:
+            cpu: "1"
+            memory: 4Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 101
+          runAsNonRoot: true
+          runAsUser: 1000840000
+          seccompProfile:
+            type: RuntimeDefault
+      initContainers:
+      - name: clickhouse-init
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 101
+          runAsNonRoot: true
+          runAsUser: 1000840000
+          seccompProfile:
+            type: RuntimeDefault
+      podPlacementPolicy:
+        name: default
+      securityContext:
+        fsGroup: 1000840000
+  replicas: 1
+  sslVerificationMode: strict
+  storage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 3Gi
+  storageType: Durable
+  tls:
+    certificates:
+    - alias: server
+      dnsNames:
+      - ace
+      ipAddresses:
+      - 20.219.233.233
+      secretName: ch-server-cert
+      subject:
+        organizations:
+        - ace
+    - alias: client
+      secretName: ch-client-cert
+    clientCaCertificateRefs:
+    - key: public.crt
+      name: tls-ssl-minio
+      optional: false
+    issuerRef:
+      apiGroup: cert-manager.io
+      kind: Issuer
+      name: prom-label-proxy-gw
+  version: 24.4.1

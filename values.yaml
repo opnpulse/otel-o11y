@@ -1,4 +1,5 @@
-clusterName: kind
+clusterName: ace-spoke
+
 collectors:
   daemon:
     suffix: agent
@@ -17,52 +18,68 @@ collectors:
         scrapeInterval: "30s"
         serviceMonitorSelector: {}
     config:
+      receivers:
+        k8sobjects:
+          auth_type: serviceAccount
+          objects:
+            - name: namespaces
       exporters:
         otlp:
-          endpoint: opentelemetry-kube-stack-gateway-collector:4317   
+          endpoint: opentelemetry-kube-stack-gateway-collector.monitoring.svc.cluster.local:4317
           tls:
             insecure: true
         debug:
           verbosity: detailed
+      processors:
+        k8sattributes:
+          extract:
+            metadata:
+              - k8s.namespace.name
+            labels:
+              - tag_name: ace.client
+                key: ace.appscode.com/client-org
+                from: namespace
       service:
         pipelines:
           metrics:
-            receivers: [prometheus]
-            processors: [k8sattributes]
-            exporters: [debug,otlp]
+            receivers: [ prometheus ]
+            processors: [ k8sattributes ]
+            exporters: [ debug,otlp ]
           traces: null
           logs:
-            receivers: [filelog]
+            receivers: [filelog, k8sobjects]
             processors: [k8sattributes]
-            exporters: [debug,otlp]
+            exporters: [debug, otlp]
     presets:
       logsCollection:
         enabled: true
-      kubeletMetrics:
-        enabled: false
       hostMetrics:
+        enabled: false
+      kubeletMetrics:
         enabled: false
       kubernetesAttributes:
         enabled: true
+
   cluster:
     suffix: gateway
     enabled: true
     labels:
       otel-collector-type: deployment
-    env:
-    - name: CLICKHOUSE_USERNAME
-      valueFrom:
-        secretKeyRef:
-          name: ch-auth
-          key: username
-    - name: CLICKHOUSE_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: ch-auth
-          key: password
     image:
-      repository: otel/opentelemetry-collector-contrib
-      tag: 0.123.0
+      repository: rokibulhasan114/opentelemetry-collector-ace
+      tag: v0.1.0
+      pullPolicy: Always
+    env:
+      - name: CLICKHOUSE_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: ch-auth
+            key: username
+      - name: CLICKHOUSE_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: ch-auth
+            key: password
     presets:
       clusterMetrics:
         enabled: false
@@ -72,35 +89,82 @@ collectors:
           protocols:
             grpc:
               endpoint: 0.0.0.0:4317
+              include_metadata: true
             http:
               endpoint: 0.0.0.0:4318
+              include_metadata: true
+      extensions:
+        headers_setter:
+          headers:
+            - action: upsert
+              key: THANOS-TENANT
+              from_context: tenant-id
+      processors:
+        k8sattributes:
+          extract:
+            metadata:
+              - k8s.namespace.name
+            labels:
+              - tag_name: ace.client
+                key: ace.appscode.com/client-org
+                from: namespace
+        groupbyattrs:
+          keys: [source_id]
+        transform/tenant:
+          error_mode: ignore
+          metric_statements:
+            - context: resource
+              statements:
+                - set(resource.attributes["tenant"], "default")
+                - set(resource.attributes["tenant"], resource.attributes["k8s.namespace.name"])
+                  where resource.attributes["ace.client"] == "true"
+        groupbyattrs/tenant:
+          keys: [tenant]
+        context/tenant:
+          actions:
+            - action: upsert
+              key: tenant-id
+              value: anonymous
+              from_attribute: tenant
+        batch/tenant:
+          send_batch_size: 1000
+          send_batch_max_size: 2000
+          timeout: 1s
+          metadata_keys:
+            - tenant-id
       exporters:
+        debug:
+          verbosity: detailed
         prometheusremotewrite:
-          endpoint: "http://thanos-receive.monitoring.svc.cluster.local:19291/api/v1/receive"
+          endpoint: "http://10.2.0.141/receiver/api/v1/receive"
+          auth:
+            authenticator: headers_setter
         clickhouse:
-          endpoint: "tcp://ch:9000"
-          username: ${CLICKHOUSE_USERNAME}
-          password: ${CLICKHOUSE_PASSWORD}
+          endpoint: "tcp://10.2.0.141:9000"
+          username: "admin"
+          password: "D4NT8ephEUHfVgh6"
           database: "default"
           create_schema: false
           logs_table_name: otel_logs
           timeout: 10s
           sending_queue:
-            queue_size: 100
+            queue_size: 10000
           retry_on_failure:
             enabled: true
             initial_interval: 5s
             max_interval: 30s
             max_elapsed_time: 300s
       service:
+        extensions: [headers_setter]
         pipelines:
-          metrics:
-            receivers: [otlp]
-            exporters: [prometheusremotewrite]
-          traces: null
           logs:
-            receivers: [otlp,k8sobjects]
+            receivers: [otlp]
             exporters: [clickhouse]
+          metrics:
+            receivers: [ otlp ]
+            processors: [ groupbyattrs, transform/tenant, groupbyattrs/tenant, context/tenant, batch/tenant]
+            exporters: [ debug, prometheusremotewrite]
+          traces: null
 
 instrumentation:
   enabled: false

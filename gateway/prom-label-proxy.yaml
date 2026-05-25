@@ -1,0 +1,46 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: prom-label-proxy-route
+  namespace: monitoring
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: thanos-gateway
+      namespace: monitoring
+      sectionName: https
+
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /telemetry
+        - path:
+            type: PathPrefix
+            value: /
+        - path:
+            type: PathPrefix
+            value: /api/v1
+      backendRefs:
+        - name: prom-label-proxy
+          port: 8080
+
+---
+
+apiVersion: gateway.networking.k8s.io/v1alpha3
+kind: BackendTLSPolicy
+metadata:
+  name: prom-label-proxy-backend-tls
+  namespace: monitoring
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: prom-label-proxy
+  validation:
+    caCertificateRefs:
+      - group: ""
+        kind: Secret
+        name: prom-proxy-cert
+    hostname: prom-label-proxy.monitoring.svc.cluster.local

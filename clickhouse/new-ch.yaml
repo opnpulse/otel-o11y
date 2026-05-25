@@ -4,10 +4,24 @@ metadata:
   name: ch
   namespace: monitoring
 spec:
+  sslVerificationMode: strict
   tls:
     clientCaCertificateRefs:
       - name: "tls-ssl-minio"
         key: public.crt
+    issuerRef:
+      apiGroup: "cert-manager.io"
+      kind: Issuer
+      name: prom-label-proxy-gw
+    certificates:
+      - alias: server
+        subject:
+          organizations:
+            - ace
+        dnsNames:
+          - ace
+        ipAddresses:
+          - "20.219.233.233"
   configuration:
     secretName: my-config-xml
   version: 24.4.1

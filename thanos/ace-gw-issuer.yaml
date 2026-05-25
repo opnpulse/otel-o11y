@@ -1,0 +1,9 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ace-gw
+  namespace: thanos-operator-system
+spec:
+  ca:
+    secretName: ace-gw-ca
+
