@@ -85,8 +85,9 @@ Fill in the configuration sections as shown below:
 ## Step 6: Enable the OpenTelemetry Feature on a Spoke Cluster
 
 1. Import a new cluster as a **spoke**.
-2. Go to the cluster's **Observability** feature set.
-3. Enable the **`appscode-otel-stack`** feature.
+2. `helm upgrade -i kubedb-perses-dashboards oci://ghcr.io/appscode-charts/kubedb-perses-dashboards -n monitoring --create-namespace --version=v2026.4.27`
+3. Go to the cluster's **Observability** feature set.
+4. Enable the **`appscode-otel-stack`** feature.
 
 ---
 
