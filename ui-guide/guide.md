@@ -28,6 +28,10 @@ kubectl create ns minio
 kubectl create secret generic tls-ssl-minio -n minio \
   --from-file=private.key \
   --from-file=public.crt
+  
+kubectl create secret generic tls-ssl-minio -n monitoring \
+  --from-file=private.key \
+  --from-file=public.crt  
 
 helm repo add minio-comm https://charts.min.io/
 
