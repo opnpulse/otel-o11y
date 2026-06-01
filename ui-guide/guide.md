@@ -14,7 +14,7 @@ Set up a self-hosted installer for your environment.
 
 ## Step 2: Create the Observability Cluster
 
-Create a new cluster and import it using the **Observability Cluster** cluster profile.
+Create a new cluster and import it as spoke, choose the **Observability Cluster** cluster profile while importing.
 
 ---
 
@@ -53,7 +53,7 @@ Port-forward the MinIO console and create the bucket via the UI:
 kubectl port-forward -n minio svc/minio-console 9001:9001
 ```
 
-Open `http://localhost:9001` and log in:
+Open `https://localhost:9001` and log in:
 
 | Field    | Value          |
 |----------|----------------|
@@ -92,7 +92,7 @@ There are two ways to enable the OpenTelemetry feature on a spoke cluster:
 
 ### Option A: During Cluster Import
 
-When importing a new cluster, select **Monitoring Cluster** in the import flow. This automatically enables the OpenTelemetry feature.
+When importing a new cluster, select a **Monitoring Cluster** on the drop-down in the import flow. This automatically enables the OpenTelemetry feature.
 
 ### Option B: On an Existing Spoke Cluster
 
